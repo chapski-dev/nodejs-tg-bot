@@ -1,7 +1,9 @@
-const { Telegraf } = require("telegraf");
+import * as dotenv from "dotenv";
+import { Telegraf } from "telegraf";
 
+dotenv.config();
 //Создаём экземпляр класса  Telegraf, в конструктор передаём токен бота, который мы получили у BotFather. Через этот экземпляр будем управлять ботом.
-const bot = new Telegraf("5881189917:AAE9emfjervafMdSn-uQuGRvfDFhRrYZZ-o");
+const bot = new Telegraf(process.env.TELERGRAM_API_KEY);
 
 // Регистрируем наше middleware — функцию обработчик сообщений. В данном случае оно возвращает ответным сообщением свойство ctx.update, сериализованное в JSON. Свойство update это сообщение, которое прислал боту Telegram. Подробнее о Middlewares и о параметре ctx будет дальше.
  bot.use(async (ctx) => {
