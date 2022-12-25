@@ -1,37 +1,45 @@
-const { Telegraf } = require("telegraf");
+import * as dotenv from "dotenv";
+import { Telegraf } from "telegraf";
+
+dotenv.config();
 
 //Создаём экземпляр класса  Telegraf, в конструктор передаём токен бота, который мы получили у BotFather. Через этот экземпляр будем управлять ботом.
-const bot = new Telegraf("5881189917:AAE9emfjervafMdSn-uQuGRvfDFhRrYZZ-o");
+const bot = new Telegraf(process.env.TELERGRAM_API_KEY);
 
-// Регистрируем наше middleware — функцию обработчик сообщений. В данном случае оно возвращает ответным сообщением свойство ctx.update, сериализованное в JSON. Свойство update это сообщение, которое прислал боту Telegram. Подробнее о Middlewares и о параметре ctx будет дальше.
- bot.use(async (ctx) => {
-   await ctx.reply(JSON.stringify(ctx.update, null, 2));
- });
+//? Moжно импортировать словарь или адрес по которому он словарь тянет
+//! Альтернатинвый динамический метод
+// const greetings = {greetings:[...]};//тут сделать запрос к https://www.greetingsapi.com/greetings или просто скопировать ответ, который отдает этот API и захардкодить здесь
 
- //! Добавлены мидлвары которые работаю так же как и в Express переходя от одной мидлвары к другой через функцию next(). Middleware так же принимает в себя контекст сообщения(см стооку 8) и саму фукнцию next.
+// const greetingsLookup = new Set(greetings.greetings.map(x => x.toLowerCase()));
+// bot.on('text',async (ctx) => {
+//     const text = ctx.update.message.text;
+//     if(greetingsLookup.has(text.toLowerCase())) {
+//         await ctx.reply(text);
+//         return;
+//     }
+//     await ctx.reply(`Приветствие "${ctx.update.message.text}" не поддерживается.`);
+// });
 
-//& const middleware1 = (ctx, next) => {
-//^   console.log('ctx', ctx);
-//^   console.log('middleware1');
-//^   next();
-//& };
+//^ Слушаем команду /help из tg и возвращаем ответ через ctx.reply
+bot.command('help', (ctx) => {
+  ctx.reply(`
+  Бот может здороваться на разных языках.
+  Список поддерживаемых приветствий:
+  - привет - русский
+  - hello - английский
+  - hola - испанский
+  `)
+});
 
-//& const middleware2 = (ctx, next) => {
-//^   console.log('middleware2');
-//& };
+//^ Следим за вводимыми словами переданными первым параметром в метод hears из tg и возвращаем ответ через ctx.reply
+bot.hears('привет', (ctx) => ctx.reply('привет'));
+bot.hears('hello', (ctx) => ctx.reply('hello'));
+bot.hears('hola', (ctx) => ctx.reply('hola'));
 
-//& const middleware3 = (ctx, next) => {
-//^   console.log('middleware3');
-//& };
+//! В случае НЕ совпадения параметров из вышеизложенных - возвращает дефолтный ответ.
+bot.on('text', (ctx) => ctx.reply(`Приветствие "${ctx.update.message.text}" не поддерживается.`))
 
-//? bot.use(middleware1);
-//? bot.use(middleware2);
-//? bot.use(middleware3);
+bot.launch().then(() => console.log('Started'));
 
-
-//По умолчанию бот работает в режиме long-polling, то есть сам начинает делать запросы в Bot API, чтобы получить новые сообщения. Функция launch запускает этот процесс и возвращает Promise, когда Promise выполнится, выводим в консоль сообщение, что бот запустился.
-bot.launch().then(() => console.log("Started"));
-
-//Далее регистрируем обработчики, которые произведут необходимые операции для остановки бота, в случае если приложение получит сигнал о прекращении работы. Например, если нажмёте Ctrl+C в Терминале в котором запустили бота.
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
